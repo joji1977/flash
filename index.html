@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SG 用語フラッシュカード</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#101826; --panel2:#0f1623;
+      --text:#e7eefc; --muted:#9db0d0; --accent:#6aa9ff; --good:#41d18b; --bad:#ff6a6a;
+      --border:rgba(255,255,255,.12);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    }
+    body{ margin:0; background:radial-gradient(1200px 800px at 20% 10%, #142642, var(--bg)); color:var(--text); }
+    .wrap{ max-width:980px; margin:0 auto; padding:18px 14px 28px; }
+    header{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1{ font-size:18px; margin:0; letter-spacing:.02em; }
+    .sub{ color:var(--muted); font-size:12px; margin-top:4px; line-height:1.5; }
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; margin-top:12px; }
+    @media(min-width:860px){ .grid{ grid-template-columns: 1fr 330px; align-items:start; } }
+
+    /* Card */
+    .card{
+      position:relative;
+      min-height: 260px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 18px 45px rgba(0,0,0,.45);
+      overflow:hidden;
+      cursor:pointer;
+      user-select:none;
+    }
+    .cardInner{
+      padding:22px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      height:100%;
+    }
+    .badgeRow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .badge{
+      font-size:12px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--muted);
+      background: rgba(0,0,0,.18);
+    }
+    .badge strong{ color:var(--text); font-weight:600; }
+    .face{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      line-height:1.55;
+      padding:8px 4px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .frontText{ font-size:28px; font-weight:700; letter-spacing:.01em; }
+    .backText{ font-size:16px; color:var(--text); }
+    .hint{ color:var(--muted); font-size:12px; text-align:center; padding:0 18px 16px; }
+    .cardTopFade{
+      position:absolute; inset:0;
+      background: radial-gradient(900px 380px at 50% -20%, rgba(106,169,255,.22), transparent 65%);
+      pointer-events:none;
+    }
+
+    /* Controls */
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button, .btn{
+      appearance:none; border:none;
+      border-radius: 12px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.14);
+      cursor:pointer;
+      transition: transform .05s ease, background .2s ease;
+      font-size:14px;
+    }
+    button:hover{ background: rgba(255,255,255,.12); }
+    button:active{ transform: translateY(1px); }
+    button.primary{ background: rgba(106,169,255,.18); border-color: rgba(106,169,255,.35); }
+    button.good{ background: rgba(65,209,139,.14); border-color: rgba(65,209,139,.35); }
+    button.bad{ background: rgba(255,106,106,.14); border-color: rgba(255,106,106,.35); }
+
+    .side .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+    .side label{ font-size:12px; color:var(--muted); }
+    .side input[type="search"], .side select, .side textarea{
+      width:100%;
+      box-sizing:border-box;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline:none;
+    }
+    .side textarea{ min-height:120px; resize:vertical; }
+    .kpi{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px; }
+    .kpi .box{
+      padding:10px; border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+    }
+    .kpi .n{ font-size:18px; font-weight:700; }
+    .kpi .t{ font-size:12px; color:var(--muted); }
+
+    .small{ font-size:12px; color:var(--muted); line-height:1.55; }
+    .hr{ height:1px; background: rgba(255,255,255,.12); margin:12px 0; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace; }
+
+    .toast{
+      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
+      background: rgba(0,0,0,.75);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      display:none;
+      z-index:9999;
+      max-width: min(620px, calc(100% - 24px));
+      font-size:13px;
+      line-height:1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>SG 用語フラッシュカード（HTML / JS）</h1>
+        <div class="sub">
+          iPhone / iPad / PC のブラウザで動きます。まず右側の「TSV読み込み」から用語データを入れてください（Anki用TSVでもOK）。<br>
+          ショートカット：<span class="mono">Space</span> で裏返す、<span class="mono">← →</span> で移動、<span class="mono">K</span>=覚えた、<span class="mono">U</span>=まだ。
+        </div>
+      </div>
+      <div class="controls">
+        <button id="btnPrev">← 前</button>
+        <button id="btnFlip" class="primary">裏返す</button>
+        <button id="btnNext">次 →</button>
+        <button id="btnShuffle">シャッフル</button>
+        <button id="btnReset" title="覚えた/まだ の記録を消します">記録リセット</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="card" id="card" role="button" aria-label="カードをクリックして裏返す">
+          <div class="cardTopFade"></div>
+          <div class="cardInner">
+            <div class="badgeRow">
+              <div class="badge"><strong id="idx">0</strong>/<span id="total">0</span></div>
+              <div class="badge">タグ：<strong id="tag">-</strong></div>
+              <div class="badge">状態：<strong id="status">-</strong></div>
+            </div>
+            <div class="face" id="face">
+              <div class="frontText" id="front">右側からTSVを読み込んでください</div>
+            </div>
+          </div>
+          <div class="hint">カードをタップ／クリックで裏返し。下のボタンでもOK。</div>
+        </div>
+      </section>
+
+      <aside class="panel side">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <label>TSV読み込み（おすすめ：ファイル選択）</label>
+          </div>
+          <div class="small">（2列 or 3列：用語 / 定義 / 任意タグ）</div>
+        </div>
+
+        <div class="row">
+          <input id="file" type="file" accept=".tsv,.txt" />
+          <button id="btnLoadFile" class="primary">このファイルを読み込む</button>
+        </div>
+
+        <div class="small">※ iCloud Driveに置いたTSVを選択できます。HTMLから直接“同じフォルダのTSVを自動読み込み”は環境によって制限があるため、ファイル選択方式にしています。</div>
+
+        <div class="hr"></div>
+
+        <label>（予備）TSVを貼り付けて読み込み</label>
+        <textarea id="paste" placeholder="TSVをここに貼り付け（用語[TAB]定義[ TAB ]タグ）"></textarea>
+        <div class="row">
+          <button id="btnLoadPaste">貼り付けTSVを読み込む</button>
+          <button id="btnClearPaste">消す</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <label>検索（用語/定義）</label>
+        <input id="q" type="search" placeholder="例：ゼロトラスト / CVSS / 法律" />
+
+        <div class="row">
+          <div style="flex:1;">
+            <label>タグで絞り込み</label>
+            <select id="tagFilter"></select>
+          </div>
+          <div style="flex:1;">
+            <label>表示対象</label>
+            <select id="stateFilter">
+              <option value="all">すべて</option>
+              <option value="unknown">まだ（未習得）</option>
+              <option value="known">覚えた</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="btnMarkKnown" class="good">覚えた（K）</button>
+          <button id="btnMarkUnknown" class="bad">まだ（U）</button>
+        </div>
+
+        <div class="kpi">
+          <div class="box"><div class="n" id="kKnown">0</div><div class="t">覚えた</div></div>
+          <div class="box"><div class="n" id="kUnknown">0</div><div class="t">まだ</div></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="small">
+          <div><strong>使い方（iCloud Drive）</strong></div>
+          <ol style="margin:8px 0 0 18px; padding:0;">
+            <li>このHTMLとTSVを同じフォルダに置く</li>
+            <li>iPhone/iPad：ファイルAppからHTMLを開き、共有→Safariで開く（またはブラウザで開く）</li>
+            <li>「TSV読み込み」でTSVを選択→読み込む</li>
+          </ol>
+          <div style="margin-top:8px;">データは外部送信しません（端末内のブラウザで処理・保存）。</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const els = {
+    file: document.getElementById('file'),
+    btnLoadFile: document.getElementById('btnLoadFile'),
+    paste: document.getElementById('paste'),
+    btnLoadPaste: document.getElementById('btnLoadPaste'),
+    btnClearPaste: document.getElementById('btnClearPaste'),
+    q: document.getElementById('q'),
+    tagFilter: document.getElementById('tagFilter'),
+    stateFilter: document.getElementById('stateFilter'),
+    btnPrev: document.getElementById('btnPrev'),
+    btnNext: document.getElementById('btnNext'),
+    btnFlip: document.getElementById('btnFlip'),
+    btnShuffle: document.getElementById('btnShuffle'),
+    btnReset: document.getElementById('btnReset'),
+    btnMarkKnown: document.getElementById('btnMarkKnown'),
+    btnMarkUnknown: document.getElementById('btnMarkUnknown'),
+    card: document.getElementById('card'),
+    idx: document.getElementById('idx'),
+    total: document.getElementById('total'),
+    tag: document.getElementById('tag'),
+    status: document.getElementById('status'),
+    face: document.getElementById('face'),
+    front: document.getElementById('front'),
+    kKnown: document.getElementById('kKnown'),
+    kUnknown: document.getElementById('kUnknown'),
+    toast: document.getElementById('toast'),
+  };
+
+  // Data model
+  let cards = []; // {front, back, tag}
+  let filtered = [];
+  let i = 0;
+  let showingBack = false;
+
+  // Progress store (per browser/device)
+  const STORAGE_KEY = 'sg_flashcards_progress_v1';
+  const state = {
+    known: new Set(),
+  };
+
+  function loadProgress() {
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const obj = JSON.parse(raw);
+      if(obj && Array.isArray(obj.known)) state.known = new Set(obj.known);
+    }catch(e){}
+  }
+  function saveProgress() {
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({known: Array.from(state.known)}));
+    }catch(e){}
+  }
+
+  function toast(msg){
+    els.toast.textContent = msg;
+    els.toast.style.display = 'block';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>els.toast.style.display='none', 2400);
+  }
+
+  function normalize(s){
+    return (s || '').toString().trim();
+  }
+
+  function parseTSV(text){
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const out = [];
+    for(const line of lines){
+      if(!line.trim()) continue;
+      const cols = line.split('\t');
+      const front = normalize(cols[0] || '');
+      const back  = normalize(cols[1] || '');
+      const tag   = normalize(cols[2] || '');
+      if(!front || !back) continue;
+      out.push({front, back, tag});
+    }
+    return out;
+  }
+
+  function rebuildFilters(){
+    // tag options
+    const tags = new Set();
+    for(const c of cards){
+      if(c.tag) tags.add(c.tag);
+    }
+    const opts = ['（すべて）', ...Array.from(tags).sort()];
+    els.tagFilter.innerHTML = '';
+    opts.forEach((t, idx) => {
+      const o = document.createElement('option');
+      o.value = idx===0 ? '' : t;
+      o.textContent = t;
+      els.tagFilter.appendChild(o);
+    });
+  }
+
+  function applyFilters(resetIndex=true){
+    const q = normalize(els.q.value).toLowerCase();
+    const tag = normalize(els.tagFilter.value);
+    const sf = els.stateFilter.value;
+
+    filtered = cards.filter(c => {
+      if(tag && c.tag !== tag) return false;
+      if(q){
+        const hay = (c.front + '\n' + c.back).toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      const isKnown = state.known.has(c.front);
+      if(sf === 'known' && !isKnown) return false;
+      if(sf === 'unknown' && isKnown) return false;
+      return true;
+    });
+
+    if(resetIndex) i = 0;
+    showingBack = false;
+    render();
+    renderKPI();
+  }
+
+  function render(){
+    els.total.textContent = String(filtered.length);
+    if(filtered.length === 0){
+      els.idx.textContent = '0';
+      els.tag.textContent = '-';
+      els.status.textContent = '-';
+      els.face.innerHTML = '<div class="backText">該当カードがありません。検索条件やフィルタを見直してください。</div>';
+      return;
+    }
+    if(i < 0) i = 0;
+    if(i >= filtered.length) i = filtered.length - 1;
+
+    const c = filtered[i];
+    const isKnown = state.known.has(c.front);
+
+    els.idx.textContent = String(i + 1);
+    els.tag.textContent = c.tag || '（なし）';
+    els.status.textContent = isKnown ? '覚えた' : 'まだ';
+
+    if(showingBack){
+      els.face.innerHTML = '<div class="backText"></div>';
+      els.face.firstChild.textContent = c.back;
+    }else{
+      els.face.innerHTML = '<div class="frontText"></div>';
+      els.face.firstChild.textContent = c.front;
+    }
+  }
+
+  function renderKPI(){
+    const knownCount = cards.filter(c => state.known.has(c.front)).length;
+    const unknownCount = Math.max(0, cards.length - knownCount);
+    els.kKnown.textContent = String(knownCount);
+    els.kUnknown.textContent = String(unknownCount);
+  }
+
+  function flip(){
+    if(filtered.length === 0) return;
+    showingBack = !showingBack;
+    render();
+  }
+  function next(){
+    if(filtered.length === 0) return;
+    if(i < filtered.length - 1) i++;
+    showingBack = false;
+    render();
+  }
+  function prev(){
+    if(filtered.length === 0) return;
+    if(i > 0) i--;
+    showingBack = false;
+    render();
+  }
+  function shuffle(){
+    // Fisher–Yates on filtered order by shuffling cards then re-applying filters w/ reset
+    for(let j = cards.length - 1; j > 0; j--){
+      const k = Math.floor(Math.random() * (j + 1));
+      [cards[j], cards[k]] = [cards[k], cards[j]];
+    }
+    applyFilters(true);
+    toast('シャッフルしました');
+  }
+
+  function markKnown(){
+    if(filtered.length === 0) return;
+    const c = filtered[i];
+    state.known.add(c.front);
+    saveProgress();
+    render();
+    renderKPI();
+    toast('「覚えた」にしました');
+  }
+  function markUnknown(){
+    if(filtered.length === 0) return;
+    const c = filtered[i];
+    state.known.delete(c.front);
+    saveProgress();
+    render();
+    renderKPI();
+    toast('「まだ」に戻しました');
+  }
+
+  function resetProgress(){
+    if(!confirm('「覚えた/まだ」の記録をリセットします。よろしいですか？')) return;
+    state.known = new Set();
+    saveProgress();
+    render();
+    renderKPI();
+    toast('記録をリセットしました');
+  }
+
+  async function loadFromFile(){
+    const f = els.file.files && els.file.files[0];
+    if(!f){ toast('TSVファイルを選択してください'); return; }
+    const text = await f.text();
+    const parsed = parseTSV(text);
+    if(parsed.length === 0){
+      toast('読み込みに失敗しました（列数やタブ区切りを確認）');
+      return;
+    }
+    cards = parsed;
+    rebuildFilters();
+    applyFilters(true);
+    toast(`読み込み完了：${cards.length}枚`);
+  }
+
+  function loadFromPaste(){
+    const text = els.paste.value || '';
+    const parsed = parseTSV(text);
+    if(parsed.length === 0){
+      toast('貼り付け内容からカードを作れませんでした（タブ区切りか確認）');
+      return;
+    }
+    cards = parsed;
+    rebuildFilters();
+    applyFilters(true);
+    toast(`読み込み完了：${cards.length}枚`);
+  }
+
+  // Events
+  els.btnLoadFile.addEventListener('click', loadFromFile);
+  els.btnLoadPaste.addEventListener('click', loadFromPaste);
+  els.btnClearPaste.addEventListener('click', ()=>{ els.paste.value=''; });
+  els.q.addEventListener('input', ()=>applyFilters(false));
+  els.tagFilter.addEventListener('change', ()=>applyFilters(true));
+  els.stateFilter.addEventListener('change', ()=>applyFilters(true));
+
+  els.btnPrev.addEventListener('click', prev);
+  els.btnNext.addEventListener('click', next);
+  els.btnFlip.addEventListener('click', flip);
+  els.btnShuffle.addEventListener('click', shuffle);
+  els.btnReset.addEventListener('click', resetProgress);
+  els.btnMarkKnown.addEventListener('click', markKnown);
+  els.btnMarkUnknown.addEventListener('click', markUnknown);
+  els.card.addEventListener('click', flip);
+
+  window.addEventListener('keydown', (e) => {
+    // ignore when typing in inputs
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+    if(e.code === 'Space'){ e.preventDefault(); flip(); }
+    else if(e.code === 'ArrowRight'){ next(); }
+    else if(e.code === 'ArrowLeft'){ prev(); }
+    else if(e.key === 'k' || e.key === 'K'){ markKnown(); }
+    else if(e.key === 'u' || e.key === 'U'){ markUnknown(); }
+  });
+
+  // Init
+  loadProgress();
+
+  // Hosted mode: if a file named "cards.tsv" is placed next to this HTML (same folder),
+  // try to auto-load it via fetch(). If it fails (e.g., local file or not found), fall back to manual file selection.
+  (async () => {
+    try{
+      const res = await fetch('./cards.tsv', {cache:'no-store'});
+      if(!res.ok) throw new Error('cards.tsv not found');
+      const text = await res.text();
+      const parsed = parseTSV(text);
+      if(parsed.length){
+        cards = parsed;
+        rebuildFilters();
+        applyFilters(true);
+        renderKPI();
+        toast(`自動読み込み：${cards.length}枚（cards.tsv）`);
+        return;
+      }
+    }catch(e){
+      // ignore
+    }
+  })();
+
+  rebuildFilters();
+  applyFilters(true);
+  renderKPI();
+
+})();
+</script>
+</body>
+</html>
