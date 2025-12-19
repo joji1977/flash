@@ -2,538 +2,726 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SG 用語フラッシュカード</title>
+  <meta name="description" content="cards.tsv を同一ディレクトリから読み込むフラッシュカード（端末内で処理・保存）" />
+
   <style>
     :root{
-      --bg:#0b0f14; --panel:#101826; --panel2:#0f1623;
-      --text:#e7eefc; --muted:#9db0d0; --accent:#6aa9ff; --good:#41d18b; --bad:#ff6a6a;
-      --border:rgba(255,255,255,.12);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius:18px;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      --bg0:#05070d; --bg1:#0a1223;
+      --glass: rgba(255,255,255,0.07);
+      --stroke: rgba(255,255,255,0.14);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --muted2: rgba(255,255,255,0.55);
+      --shadow: 0 20px 50px rgba(0,0,0,0.55);
+      --r: 20px; --r2: 26px;
+      --good: rgba(46, 204, 113, 0.92);
+      --bad: rgba(231, 76, 60, 0.92);
+      --btn: rgba(255,255,255,0.10);
+      --btnH: rgba(255,255,255,0.16);
+      --focus: rgba(120,170,255,0.55);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", Arial, sans-serif;
     }
-    body{ margin:0; background:radial-gradient(1200px 800px at 20% 10%, #142642, var(--bg)); color:var(--text); }
-    .wrap{ max-width:980px; margin:0 auto; padding:18px 14px 28px; }
-    header{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
-    h1{ font-size:18px; margin:0; letter-spacing:.02em; }
-    .sub{ color:var(--muted); font-size:12px; margin-top:4px; line-height:1.5; }
-    .panel{
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:14px;
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(1200px 800px at 20% 18%, rgba(60,120,255,0.22), transparent 60%),
+        radial-gradient(900px 700px at 80% 30%, rgba(180,80,255,0.16), transparent 65%),
+        radial-gradient(1000px 900px at 40% 90%, rgba(40,220,170,0.12), transparent 62%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow: hidden;
     }
-    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; margin-top:12px; }
-    @media(min-width:860px){ .grid{ grid-template-columns: 1fr 330px; align-items:start; } }
+    .app{ height: 100%; display:flex; gap: 18px; padding: 18px; }
+    .stage{
+      flex: 1 1 auto; min-width: 520px;
+      display:flex; flex-direction: column;
+      align-items:center; justify-content:center;
+      padding: 18px;
+    }
+    .cardWrap{ width: min(900px, 100%); display:flex; flex-direction: column; align-items:center; gap: 14px; }
 
-    /* Card */
     .card{
-      position:relative;
-      min-height: 260px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 18px 45px rgba(0,0,0,.45);
+      width: 100%;
+      height: min(420px, 52vh);
+      border-radius: var(--r2);
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: relative;
       overflow:hidden;
-      cursor:pointer;
-      user-select:none;
+      cursor: pointer;
+      user-select: none;
+      padding: 22px 22px 18px;
     }
-    .cardInner{
-      padding:22px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      height:100%;
-    }
-    .badgeRow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .badge{
-      font-size:12px;
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      color:var(--muted);
-      background: rgba(0,0,0,.18);
-    }
-    .badge strong{ color:var(--text); font-weight:600; }
-    .face{
-      flex:1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      line-height:1.55;
-      padding:8px 4px;
-      white-space:pre-wrap;
-      word-break:break-word;
-    }
-    .frontText{ font-size:28px; font-weight:700; letter-spacing:.01em; }
-    .backText{ font-size:16px; color:var(--text); }
-    .hint{ color:var(--muted); font-size:12px; text-align:center; padding:0 18px 16px; }
-    .cardTopFade{
-      position:absolute; inset:0;
-      background: radial-gradient(900px 380px at 50% -20%, rgba(106,169,255,.22), transparent 65%);
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-60px;
+      background: radial-gradient(500px 260px at 40% 30%, rgba(255,255,255,0.10), transparent 60%);
+      transform: rotate(-6deg);
       pointer-events:none;
     }
 
-    /* Controls */
-    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    button, .btn{
-      appearance:none; border:none;
-      border-radius: 12px;
-      padding:10px 12px;
-      background: rgba(255,255,255,.08);
+    .badges{
+      position: relative; z-index: 1;
+      display:flex; gap: 10px; align-items:center; flex-wrap: wrap;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 13px;
+      color: var(--muted);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .badge strong{ color: var(--text); font-weight: 650; }
+    .dot{ width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.35); display:inline-block; }
+    .badge.learned .dot{ background: var(--good); }
+    .badge.unlearned .dot{ background: var(--bad); }
+
+    .cardMain{
+      position: relative; z-index: 1;
+      height: calc(100% - 42px);
+      display:flex; flex-direction: column;
+      justify-content:center; align-items:center;
+      text-align:center;
+      padding: 8px 12px;
+      gap: 12px;
+    }
+    .term{
+      font-size: clamp(26px, 4.2vw, 44px);
+      letter-spacing: 0.02em;
+      font-weight: 750;
+      line-height: 1.25;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .def{
+      font-size: clamp(15px, 2vw, 18px);
+      line-height: 1.7;
+      color: rgba(255,255,255,0.86);
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-width: 60ch;
+    }
+    .hint{ font-size: 13px; color: var(--muted2); margin-top: 6px; }
+    .cardFooter{
+      width: 100%;
+      display:flex; align-items:center; justify-content: space-between;
+      gap: 12px; margin-top: 6px;
+      color: var(--muted2); font-size: 12px;
+      position: relative; z-index: 1;
+    }
+    .navBtns{ display:flex; gap: 10px; align-items:center; }
+
+    button{
+      font-family: var(--sans);
       color: var(--text);
-      border:1px solid rgba(255,255,255,.14);
+      background: var(--btn);
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      padding: 10px 12px;
       cursor:pointer;
-      transition: transform .05s ease, background .2s ease;
-      font-size:14px;
+      transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+      user-select:none;
     }
-    button:hover{ background: rgba(255,255,255,.12); }
+    button:hover{ background: var(--btnH); }
     button:active{ transform: translateY(1px); }
-    button.primary{ background: rgba(106,169,255,.18); border-color: rgba(106,169,255,.35); }
-    button.good{ background: rgba(65,209,139,.14); border-color: rgba(65,209,139,.35); }
-    button.bad{ background: rgba(255,106,106,.14); border-color: rgba(255,106,106,.35); }
-
-    .side .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-    .side label{ font-size:12px; color:var(--muted); }
-    .side input[type="search"], .side select, .side textarea{
-      width:100%;
-      box-sizing:border-box;
-      padding:10px 10px;
-      border-radius: 12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.22);
-      color: var(--text);
-      outline:none;
+    button:focus{ outline: none; box-shadow: 0 0 0 3px var(--focus); }
+    .btnSm{ padding: 9px 11px; border-radius: 12px; font-size: 13px; }
+    .btnWide{ width: 100%; }
+    .btnFlip{ background: rgba(255,255,255,0.11); }
+    .btnGood{
+      border-color: rgba(46, 204, 113, 0.35);
+      background: rgba(46, 204, 113, 0.18);
+      font-weight: 750;
     }
-    .side textarea{ min-height:120px; resize:vertical; }
-    .kpi{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px; }
-    .kpi .box{
-      padding:10px; border-radius: 14px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.18);
+    .btnBad{
+      border-color: rgba(231, 76, 60, 0.35);
+      background: rgba(231, 76, 60, 0.16);
+      font-weight: 750;
     }
-    .kpi .n{ font-size:18px; font-weight:700; }
-    .kpi .t{ font-size:12px; color:var(--muted); }
 
-    .small{ font-size:12px; color:var(--muted); line-height:1.55; }
-    .hr{ height:1px; background: rgba(255,255,255,.12); margin:12px 0; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace; }
-
-    .toast{
-      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
-      background: rgba(0,0,0,.75);
-      border:1px solid rgba(255,255,255,.14);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius: 14px;
-      box-shadow: var(--shadow);
+    .emptyState{
+      width: 100%;
+      text-align:center;
+      padding: 28px 14px;
+      color: var(--muted);
+      border: 1px dashed rgba(255,255,255,0.20);
+      border-radius: var(--r2);
+      background: rgba(0,0,0,0.12);
       display:none;
-      z-index:9999;
-      max-width: min(620px, calc(100% - 24px));
-      font-size:13px;
-      line-height:1.45;
+    }
+
+    .panel{
+      width: 420px; max-width: 42vw; min-width: 360px;
+      height: 100%;
+      border-radius: var(--r2);
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: auto;
+      padding: 16px;
+    }
+    .section{
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      background: rgba(0,0,0,0.16);
+      margin-bottom: 12px;
+    }
+    .sectionTitle{
+      font-size: 13px; font-weight: 700;
+      color: rgba(255,255,255,0.88);
+      margin: 0 0 8px;
+      display:flex; align-items:center; gap: 8px;
+    }
+    .sub{ font-size: 12px; color: var(--muted2); margin: 0 0 10px; line-height: 1.6; }
+    .row{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+
+    input[type="text"], select{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.22);
+      color: rgba(255,255,255,0.90);
+      font-family: var(--sans);
+    }
+    .cols2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .label{ font-size: 12px; color: var(--muted2); margin: 0 0 6px; }
+    .markBtns{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .stats{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .stat{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.14);
+      padding: 12px;
+      text-align:left;
+    }
+    .statNum{ font-size: 22px; font-weight: 800; margin: 0; }
+    .statLbl{ font-size: 12px; color: var(--muted2); margin: 2px 0 0; }
+    .note{ font-size: 12px; color: rgba(255,255,255,0.60); line-height: 1.6; margin-top: 10px; }
+    .kbd{
+      font-family: var(--mono);
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.25);
+      padding: 1px 6px;
+      border-radius: 7px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.80);
+      margin-left: 6px;
+    }
+    .hr{ height: 1px; background: rgba(255,255,255,0.10); margin: 12px 0; border: none; }
+    .footerSmall{ margin: 10px 0 0; font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.55; }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.20);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+    }
+    .pill.ok{ border-color: rgba(46,204,113,0.35); }
+    .pill.ng{ border-color: rgba(231,76,60,0.35); }
+
+    @media (max-width: 980px){
+      body{ overflow:auto; }
+      .app{ flex-direction: column; overflow:auto; }
+      .panel{ width: 100%; min-width: unset; max-width: unset; }
+      .stage{ min-width: unset; }
+      .card{ height: 48vh; }
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>SG 用語フラッシュカード（HTML / JS）</h1>
-        <div class="sub">
-          iPhone / iPad / PC のブラウザで動きます。まず右側の「TSV読み込み」から用語データを入れてください（Anki用TSVでもOK）。<br>
-          ショートカット：<span class="mono">Space</span> で裏返す、<span class="mono">← →</span> で移動、<span class="mono">K</span>=覚えた、<span class="mono">U</span>=まだ。
-        </div>
-      </div>
-      <div class="controls">
-        <button id="btnPrev">← 前</button>
-        <button id="btnFlip" class="primary">裏返す</button>
-        <button id="btnNext">次 →</button>
-        <button id="btnShuffle">シャッフル</button>
-        <button id="btnReset" title="覚えた/まだ の記録を消します">記録リセット</button>
-      </div>
-    </header>
+  <div class="app">
+    <!-- LEFT -->
+    <main class="stage" aria-label="フラッシュカード">
+      <div class="cardWrap">
+        <div class="card" id="card" role="button" tabindex="0" aria-label="カード（クリックで表裏切替）">
+          <div class="badges">
+            <span class="badge" id="badgeIndex"><strong>0/0</strong></span>
+            <span class="badge" id="badgeTag"><span class="dot"></span> タグ: <strong>-</strong></span>
+            <span class="badge unlearned" id="badgeStatus"><span class="dot"></span> 状態: <strong>未学習</strong></span>
+          </div>
 
-    <div class="grid">
-      <section class="panel">
-        <div class="card" id="card" role="button" aria-label="カードをクリックして裏返す">
-          <div class="cardTopFade"></div>
-          <div class="cardInner">
-            <div class="badgeRow">
-              <div class="badge"><strong id="idx">0</strong>/<span id="total">0</span></div>
-              <div class="badge">タグ：<strong id="tag">-</strong></div>
-              <div class="badge">状態：<strong id="status">-</strong></div>
-            </div>
-            <div class="face" id="face">
-              <div class="frontText" id="front">右側からTSVを読み込んでください</div>
+          <div class="cardMain">
+            <p class="term" id="term">cards.tsv を読み込み中…</p>
+            <p class="def" id="def" style="display:none;"></p>
+            <div class="hint" id="hint">カードをタップ／クリックで表裏を切り替え（<span class="kbd">Space</span>）</div>
+          </div>
+
+          <div class="cardFooter">
+            <div id="datasetInfo">データ未読み込み</div>
+            <div class="navBtns">
+              <button class="btnSm" id="btnPrev" type="button" title="前へ（←）">← 前へ</button>
+              <button class="btnSm btnFlip" id="btnFlip" type="button" title="裏返す（Space）">裏返す</button>
+              <button class="btnSm" id="btnNext" type="button" title="次へ（→）">次へ →</button>
             </div>
           </div>
-          <div class="hint">カードをタップ／クリックで裏返し。下のボタンでもOK。</div>
         </div>
-      </section>
 
-      <aside class="panel side">
-        <div class="row" style="justify-content:space-between;">
+        <div id="emptyState" class="emptyState">
+          条件に一致するカードがありません（フィルタや検索条件を見直してください）。
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT -->
+    <aside class="panel" aria-label="操作パネル">
+      <div class="section">
+        <p class="sectionTitle">TSV読み込み（同一ディレクトリの <code>cards.tsv</code>）</p>
+        <p class="sub">形式：3列（用語 / 定義 / タグ）</p>
+
+        <div class="row">
+          <button class="btnWide" id="btnReload" type="button">cards.tsv を再読み込み</button>
+        </div>
+
+        <p class="note" id="loadStatus">
+          <span class="pill" id="statusPill">未読み込み</span>
+        </p>
+
+        <p class="note">
+          ※ GitHub Pages では <code>index.html</code> と同じ階層に <code>cards.tsv</code> を置いて commit してください。
+        </p>
+      </div>
+
+      <div class="section">
+        <p class="sectionTitle">検索（用語/定義）</p>
+        <input id="searchInput" type="text" placeholder="例：ゼロトラスト / CVSS / 法律" />
+
+        <div class="cols2">
           <div>
-            <label>TSV読み込み（おすすめ：ファイル選択）</label>
+            <div class="label">タグで絞り込み</div>
+            <select id="tagFilter">
+              <option value="__ALL__">(すべて)</option>
+            </select>
           </div>
-          <div class="small">（2列 or 3列：用語 / 定義 / 任意タグ）</div>
-        </div>
-
-        <div class="row">
-          <input id="file" type="file" accept=".tsv,.txt" />
-          <button id="btnLoadFile" class="primary">このファイルを読み込む</button>
-        </div>
-
-        <div class="small">※ iCloud Driveに置いたTSVを選択できます。HTMLから直接“同じフォルダのTSVを自動読み込み”は環境によって制限があるため、ファイル選択方式にしています。</div>
-
-        <div class="hr"></div>
-
-        <label>（予備）TSVを貼り付けて読み込み</label>
-        <textarea id="paste" placeholder="TSVをここに貼り付け（用語[TAB]定義[ TAB ]タグ）"></textarea>
-        <div class="row">
-          <button id="btnLoadPaste">貼り付けTSVを読み込む</button>
-          <button id="btnClearPaste">消す</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <label>検索（用語/定義）</label>
-        <input id="q" type="search" placeholder="例：ゼロトラスト / CVSS / 法律" />
-
-        <div class="row">
-          <div style="flex:1;">
-            <label>タグで絞り込み</label>
-            <select id="tagFilter"></select>
-          </div>
-          <div style="flex:1;">
-            <label>表示対象</label>
-            <select id="stateFilter">
+          <div>
+            <div class="label">表示対象</div>
+            <select id="targetFilter">
               <option value="all">すべて</option>
-              <option value="unknown">まだ（未習得）</option>
-              <option value="known">覚えた</option>
+              <option value="unlearned">未学習のみ</option>
+              <option value="learned">覚えたのみ</option>
             </select>
           </div>
         </div>
 
+        <div class="markBtns">
+          <button class="btnGood" id="btnMarkLearned" type="button">覚えた <span class="kbd">K</span></button>
+          <button class="btnBad" id="btnMarkUnlearned" type="button">まだ <span class="kbd">U</span></button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <p class="statNum" id="learnedCount">0</p>
+            <p class="statLbl">覚えた</p>
+          </div>
+          <div class="stat">
+            <p class="statNum" id="unlearnedCount">0</p>
+            <p class="statLbl">未学習</p>
+          </div>
+        </div>
+
+        <hr class="hr" />
+
         <div class="row">
-          <button id="btnMarkKnown" class="good">覚えた（K）</button>
-          <button id="btnMarkUnknown" class="bad">まだ（U）</button>
+          <button id="btnResetProgress" type="button" class="btnWide" title="このデータセットの学習状況をリセットします">
+            学習状況をリセット
+          </button>
         </div>
+        <p class="footerSmall">
+          ※ 学習状況はこのブラウザ内に保存されます（外部送信なし）。別の端末・別ブラウザには引き継がれません。
+        </p>
+      </div>
 
-        <div class="kpi">
-          <div class="box"><div class="n" id="kKnown">0</div><div class="t">覚えた</div></div>
-          <div class="box"><div class="n" id="kUnknown">0</div><div class="t">まだ</div></div>
-        </div>
-
-        <div class="hr"></div>
-
-      </aside>
-    </div>
+      <div class="section">
+        <p class="sectionTitle">使い方</p>
+        <ol class="note" style="margin:0; padding-left: 18px;">
+          <li>ページを開くと <code>cards.tsv</code> を自動で読み込みます。</li>
+          <li>カードをクリック/タップで表裏を切り替えます（<span class="kbd">Space</span>）。</li>
+          <li>「覚えた / まだ」で状態を付けて進めます（<span class="kbd">K</span> / <span class="kbd">U</span>）。</li>
+          <li>内容を更新したら、「cards.tsv を再読み込み」を押してください。</li>
+        </ol>
+        <p class="note" style="margin-top:10px;">データは外部へ送信しません（ブラウザ内で処理・保存）。</p>
+      </div>
+    </aside>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <script>
+    "use strict";
 
-<script>
-(() => {
-  const els = {
-    file: document.getElementById('file'),
-    btnLoadFile: document.getElementById('btnLoadFile'),
-    paste: document.getElementById('paste'),
-    btnLoadPaste: document.getElementById('btnLoadPaste'),
-    btnClearPaste: document.getElementById('btnClearPaste'),
-    q: document.getElementById('q'),
-    tagFilter: document.getElementById('tagFilter'),
-    stateFilter: document.getElementById('stateFilter'),
-    btnPrev: document.getElementById('btnPrev'),
-    btnNext: document.getElementById('btnNext'),
-    btnFlip: document.getElementById('btnFlip'),
-    btnShuffle: document.getElementById('btnShuffle'),
-    btnReset: document.getElementById('btnReset'),
-    btnMarkKnown: document.getElementById('btnMarkKnown'),
-    btnMarkUnknown: document.getElementById('btnMarkUnknown'),
-    card: document.getElementById('card'),
-    idx: document.getElementById('idx'),
-    total: document.getElementById('total'),
-    tag: document.getElementById('tag'),
-    status: document.getElementById('status'),
-    face: document.getElementById('face'),
-    front: document.getElementById('front'),
-    kKnown: document.getElementById('kKnown'),
-    kUnknown: document.getElementById('kUnknown'),
-    toast: document.getElementById('toast'),
-  };
-
-  // Data model
-  let cards = []; // {front, back, tag}
-  let filtered = [];
-  let i = 0;
-  let showingBack = false;
-
-  // Progress store (per browser/device)
-  const STORAGE_KEY = 'sg_flashcards_progress_v1';
-  const state = {
-    known: new Set(),
-  };
-
-  function loadProgress() {
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      const obj = JSON.parse(raw);
-      if(obj && Array.isArray(obj.known)) state.known = new Set(obj.known);
-    }catch(e){}
-  }
-  function saveProgress() {
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({known: Array.from(state.known)}));
-    }catch(e){}
-  }
-
-  function toast(msg){
-    els.toast.textContent = msg;
-    els.toast.style.display = 'block';
-    clearTimeout(toast._t);
-    toast._t = setTimeout(()=>els.toast.style.display='none', 2400);
-  }
-
-  function normalize(s){
-    return (s || '').toString().trim();
-  }
-
-  function parseTSV(text){
-    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-    const out = [];
-    for(const line of lines){
-      if(!line.trim()) continue;
-      const cols = line.split('\t');
-      const front = normalize(cols[0] || '');
-      const back  = normalize(cols[1] || '');
-      const tag   = normalize(cols[2] || '');
-      if(!front || !back) continue;
-      out.push({front, back, tag});
-    }
-    return out;
-  }
-
-  function rebuildFilters(){
-    // tag options
-    const tags = new Set();
-    for(const c of cards){
-      if(c.tag) tags.add(c.tag);
-    }
-    const opts = ['（すべて）', ...Array.from(tags).sort()];
-    els.tagFilter.innerHTML = '';
-    opts.forEach((t, idx) => {
-      const o = document.createElement('option');
-      o.value = idx===0 ? '' : t;
-      o.textContent = t;
-      els.tagFilter.appendChild(o);
-    });
-  }
-
-  function applyFilters(resetIndex=true){
-    const q = normalize(els.q.value).toLowerCase();
-    const tag = normalize(els.tagFilter.value);
-    const sf = els.stateFilter.value;
-
-    filtered = cards.filter(c => {
-      if(tag && c.tag !== tag) return false;
-      if(q){
-        const hay = (c.front + '\n' + c.back).toLowerCase();
-        if(!hay.includes(q)) return false;
+    // ===== Utilities =====
+    function normalizeNewlines(s){ return (s ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n"); }
+    function fnv1a(str){
+      let h = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++){
+        h ^= str.charCodeAt(i);
+        h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
       }
-      const isKnown = state.known.has(c.front);
-      if(sf === 'known' && !isKnown) return false;
-      if(sf === 'unknown' && isKnown) return false;
-      return true;
-    });
-
-    if(resetIndex) i = 0;
-    showingBack = false;
-    render();
-    renderKPI();
-  }
-
-  function render(){
-    els.total.textContent = String(filtered.length);
-    if(filtered.length === 0){
-      els.idx.textContent = '0';
-      els.tag.textContent = '-';
-      els.status.textContent = '-';
-      els.face.innerHTML = '<div class="backText">該当カードがありません。検索条件やフィルタを見直してください。</div>';
-      return;
+      return ("0000000" + h.toString(16)).slice(-8);
     }
-    if(i < 0) i = 0;
-    if(i >= filtered.length) i = filtered.length - 1;
-
-    const c = filtered[i];
-    const isKnown = state.known.has(c.front);
-
-    els.idx.textContent = String(i + 1);
-    els.tag.textContent = c.tag || '（なし）';
-    els.status.textContent = isKnown ? '覚えた' : 'まだ';
-
-    if(showingBack){
-      els.face.innerHTML = '<div class="backText"></div>';
-      els.face.firstChild.textContent = c.back;
-    }else{
-      els.face.innerHTML = '<div class="frontText"></div>';
-      els.face.firstChild.textContent = c.front;
+    function parseTSV(tsvText){
+      const text = normalizeNewlines(tsvText).trim();
+      if (!text) return [];
+      const lines = text.split("\n");
+      const items = [];
+      for (const rawLine of lines){
+        const line = rawLine.trimEnd();
+        if (!line.trim()) continue;
+        const cols = line.split("\t");
+        const term = (cols[0] ?? "").trim();
+        const def  = (cols[1] ?? "").trim();
+        const tag  = (cols[2] ?? "").trim();
+        if (!term && !def) continue;
+        items.push({ term, def, tag, id: fnv1a(term + "\n" + def + "\n" + tag) });
+      }
+      return items;
     }
-  }
 
-  function renderKPI(){
-    const knownCount = cards.filter(c => state.known.has(c.front)).length;
-    const unknownCount = Math.max(0, cards.length - knownCount);
-    els.kKnown.textContent = String(knownCount);
-    els.kUnknown.textContent = String(unknownCount);
-  }
+    // ===== State =====
+    const LS = window.localStorage;
+    const STORAGE_PREFIX = "sg_flashcards_v2";
 
-  function flip(){
-    if(filtered.length === 0) return;
-    showingBack = !showingBack;
-    render();
-  }
-  function next(){
-    if(filtered.length === 0) return;
-    if(i < filtered.length - 1) i++;
-    showingBack = false;
-    render();
-  }
-  function prev(){
-    if(filtered.length === 0) return;
-    if(i > 0) i--;
-    showingBack = false;
-    render();
-  }
-  function shuffle(){
-    // Fisher–Yates on filtered order by shuffling cards then re-applying filters w/ reset
-    for(let j = cards.length - 1; j > 0; j--){
-      const k = Math.floor(Math.random() * (j + 1));
-      [cards[j], cards[k]] = [cards[k], cards[j]];
+    const state = {
+      datasetId: null,
+      rawTSV: "",
+      items: [],
+      progress: {},
+      currentId: null,
+      flipped: false,
+    };
+
+    const filters = { tag: "__ALL__", target: "all", q: "" };
+    let filteredIds = [];
+
+    // ===== Elements =====
+    const el = {
+      card: document.getElementById("card"),
+      term: document.getElementById("term"),
+      def: document.getElementById("def"),
+      hint: document.getElementById("hint"),
+      badgeIndex: document.getElementById("badgeIndex"),
+      badgeTag: document.getElementById("badgeTag"),
+      badgeStatus: document.getElementById("badgeStatus"),
+      datasetInfo: document.getElementById("datasetInfo"),
+      emptyState: document.getElementById("emptyState"),
+
+      btnPrev: document.getElementById("btnPrev"),
+      btnNext: document.getElementById("btnNext"),
+      btnFlip: document.getElementById("btnFlip"),
+
+      btnReload: document.getElementById("btnReload"),
+      statusPill: document.getElementById("statusPill"),
+
+      searchInput: document.getElementById("searchInput"),
+      tagFilter: document.getElementById("tagFilter"),
+      targetFilter: document.getElementById("targetFilter"),
+
+      btnMarkLearned: document.getElementById("btnMarkLearned"),
+      btnMarkUnlearned: document.getElementById("btnMarkUnlearned"),
+      learnedCount: document.getElementById("learnedCount"),
+      unlearnedCount: document.getElementById("unlearnedCount"),
+      btnResetProgress: document.getElementById("btnResetProgress"),
+    };
+
+    // ===== Storage keys =====
+    function keyProgress(datasetId){ return `${STORAGE_PREFIX}:progress:${datasetId}`; }
+    function keyLast(datasetId){ return `${STORAGE_PREFIX}:last:${datasetId}`; }
+
+    function setStatus(text, ok){
+      el.statusPill.textContent = text;
+      el.statusPill.classList.toggle("ok", !!ok);
+      el.statusPill.classList.toggle("ng", ok === false);
     }
-    applyFilters(true);
-    toast('シャッフルしました');
-  }
 
-  function markKnown(){
-    if(filtered.length === 0) return;
-    const c = filtered[i];
-    state.known.add(c.front);
-    saveProgress();
-    render();
-    renderKPI();
-    toast('「覚えた」にしました');
-  }
-  function markUnknown(){
-    if(filtered.length === 0) return;
-    const c = filtered[i];
-    state.known.delete(c.front);
-    saveProgress();
-    render();
-    renderKPI();
-    toast('「まだ」に戻しました');
-  }
+    function computeDatasetId(rawTSV){ return fnv1a(rawTSV); }
 
-  function resetProgress(){
-    if(!confirm('「覚えた/まだ」の記録をリセットします。よろしいですか？')) return;
-    state.known = new Set();
-    saveProgress();
-    render();
-    renderKPI();
-    toast('記録をリセットしました');
-  }
-
-  async function loadFromFile(){
-    const f = els.file.files && els.file.files[0];
-    if(!f){ toast('TSVファイルを選択してください'); return; }
-    const text = await f.text();
-    const parsed = parseTSV(text);
-    if(parsed.length === 0){
-      toast('読み込みに失敗しました（列数やタブ区切りを確認）');
-      return;
+    function loadProgress(){
+      if (!state.datasetId) return;
+      try{
+        const raw = LS.getItem(keyProgress(state.datasetId));
+        state.progress = raw ? JSON.parse(raw) : {};
+      }catch{
+        state.progress = {};
+      }
     }
-    cards = parsed;
-    rebuildFilters();
-    applyFilters(true);
-    toast(`読み込み完了：${cards.length}枚`);
-  }
 
-  function loadFromPaste(){
-    const text = els.paste.value || '';
-    const parsed = parseTSV(text);
-    if(parsed.length === 0){
-      toast('貼り付け内容からカードを作れませんでした（タブ区切りか確認）');
-      return;
+    function saveProgress(){
+      if (!state.datasetId) return;
+      LS.setItem(keyProgress(state.datasetId), JSON.stringify(state.progress));
     }
-    cards = parsed;
-    rebuildFilters();
-    applyFilters(true);
-    toast(`読み込み完了：${cards.length}枚`);
-  }
 
-  // Events
-  els.btnLoadFile.addEventListener('click', loadFromFile);
-  els.btnLoadPaste.addEventListener('click', loadFromPaste);
-  els.btnClearPaste.addEventListener('click', ()=>{ els.paste.value=''; });
-  els.q.addEventListener('input', ()=>applyFilters(false));
-  els.tagFilter.addEventListener('change', ()=>applyFilters(true));
-  els.stateFilter.addEventListener('change', ()=>applyFilters(true));
+    function saveLast(){
+      if (!state.datasetId || !state.currentId) return;
+      LS.setItem(keyLast(state.datasetId), state.currentId);
+    }
 
-  els.btnPrev.addEventListener('click', prev);
-  els.btnNext.addEventListener('click', next);
-  els.btnFlip.addEventListener('click', flip);
-  els.btnShuffle.addEventListener('click', shuffle);
-  els.btnReset.addEventListener('click', resetProgress);
-  els.btnMarkKnown.addEventListener('click', markKnown);
-  els.btnMarkUnknown.addEventListener('click', markUnknown);
-  els.card.addEventListener('click', flip);
+    function buildTagOptions(){
+      const tags = new Set();
+      for (const it of state.items){
+        if (it.tag) tags.add(it.tag);
+      }
+      const arr = Array.from(tags).sort((a,b)=>a.localeCompare(b, "ja"));
+      const current = filters.tag;
 
-  window.addEventListener('keydown', (e) => {
-    // ignore when typing in inputs
-    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-    if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      el.tagFilter.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value="__ALL__";
+      optAll.textContent="(すべて)";
+      el.tagFilter.appendChild(optAll);
 
-    if(e.code === 'Space'){ e.preventDefault(); flip(); }
-    else if(e.code === 'ArrowRight'){ next(); }
-    else if(e.code === 'ArrowLeft'){ prev(); }
-    else if(e.key === 'k' || e.key === 'K'){ markKnown(); }
-    else if(e.key === 'u' || e.key === 'U'){ markUnknown(); }
-  });
+      for (const t of arr){
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        el.tagFilter.appendChild(opt);
+      }
 
-  // Init
-  loadProgress();
+      if (current && Array.from(el.tagFilter.options).some(o=>o.value===current)){
+        el.tagFilter.value = current;
+      }else{
+        el.tagFilter.value = "__ALL__";
+        filters.tag = "__ALL__";
+      }
+    }
 
-  // Hosted mode: if a file named "cards.tsv" is placed next to this HTML (same folder),
-  // try to auto-load it via fetch(). If it fails (e.g., local file or not found), fall back to manual file selection.
-  (async () => {
-    try{
-      const res = await fetch('./cards.tsv', {cache:'no-store'});
-      if(!res.ok) throw new Error('cards.tsv not found');
-      const text = await res.text();
-      const parsed = parseTSV(text);
-      if(parsed.length){
-        cards = parsed;
-        rebuildFilters();
-        applyFilters(true);
-        renderKPI();
-        toast(`自動読み込み：${cards.length}枚（cards.tsv）`);
+    function applyFilters(){
+      const q = (filters.q || "").trim().toLowerCase();
+      const tag = filters.tag;
+      const target = filters.target;
+
+      const out = [];
+      for (const it of state.items){
+        if (tag !== "__ALL__" && (it.tag || "") !== tag) continue;
+
+        const status = state.progress[it.id] || "unlearned";
+        if (target === "learned" && status !== "learned") continue;
+        if (target === "unlearned" && status !== "unlearned") continue;
+
+        if (q){
+          const hay = ((it.term||"") + "\n" + (it.def||"") + "\n" + (it.tag||"")).toLowerCase();
+          if (!hay.includes(q)) continue;
+        }
+
+        out.push(it.id);
+      }
+      filteredIds = out;
+      if (!filteredIds.includes(state.currentId)) {
+        state.currentId = filteredIds[0] || null;
+        state.flipped = false;
+      }
+      render();
+    }
+
+    function getItemById(id){ return state.items.find(x => x.id === id) || null; }
+    function currentIndex(){ return state.currentId ? filteredIds.indexOf(state.currentId) : -1; }
+
+    function updateStats(){
+      let learned = 0;
+      for (const it of state.items){
+        if ((state.progress[it.id] || "unlearned") === "learned") learned++;
+      }
+      el.learnedCount.textContent = learned;
+      el.unlearnedCount.textContent = state.items.length - learned;
+    }
+
+    function render(){
+      const totalAll = state.items.length;
+
+      if (!totalAll){
+        el.term.textContent = "cards.tsv が見つかりません / 空です";
+        el.def.style.display = "none";
+        el.datasetInfo.textContent = "データ未読み込み";
+        el.badgeIndex.innerHTML = "<strong>0/0</strong>";
+        el.badgeTag.querySelector("strong").textContent = "-";
+        el.badgeStatus.querySelector("strong").textContent = "未学習";
+        el.badgeStatus.classList.remove("learned");
+        el.badgeStatus.classList.add("unlearned");
+        el.emptyState.style.display = "none";
+        updateStats();
         return;
       }
-    }catch(e){
-      // ignore
+
+      const totalFiltered = filteredIds.length;
+      const idx = currentIndex();
+      el.emptyState.style.display = totalFiltered ? "none" : "block";
+
+      if (!state.currentId){
+        el.term.textContent = "条件に一致するカードがありません";
+        el.def.style.display = "none";
+        el.datasetInfo.textContent = `総数 ${totalAll} 件`;
+        el.badgeIndex.innerHTML = `<strong>0/${totalFiltered}</strong>`;
+        el.badgeTag.querySelector("strong").textContent = (filters.tag === "__ALL__") ? "-" : filters.tag;
+        el.badgeStatus.querySelector("strong").textContent = "-";
+        updateStats();
+        return;
+      }
+
+      const it = getItemById(state.currentId);
+      if (!it){
+        state.currentId = filteredIds[0] || null;
+        state.flipped = false;
+        render();
+        return;
+      }
+
+      const status = state.progress[it.id] || "unlearned";
+      el.badgeIndex.innerHTML = `<strong>${(idx>=0?idx+1:1)}/${totalFiltered}</strong>`;
+      el.badgeTag.querySelector("strong").textContent = it.tag || "-";
+
+      el.badgeStatus.classList.toggle("learned", status === "learned");
+      el.badgeStatus.classList.toggle("unlearned", status !== "learned");
+      el.badgeStatus.querySelector("strong").textContent = (status === "learned") ? "覚えた" : "未学習";
+
+      el.datasetInfo.textContent = `総数 ${totalAll} 件 / 表示 ${totalFiltered} 件`;
+
+      if (state.flipped){
+        el.term.textContent = it.def || "(定義なし)";
+        el.def.style.display = "none";
+        el.hint.textContent = "クリック/タップで表に戻る（Space）";
+      }else{
+        el.term.textContent = it.term || "(用語なし)";
+        el.def.textContent = it.def || "";
+        el.def.style.display = it.def ? "block" : "none";
+        el.hint.innerHTML = 'カードをタップ／クリックで表裏を切り替え（<span class="kbd">Space</span>）';
+      }
+
+      updateStats();
     }
-  })();
 
-  rebuildFilters();
-  applyFilters(true);
-  renderKPI();
+    function nextCard(delta){
+      if (!filteredIds.length) return;
+      const idx = currentIndex();
+      const next = (idx < 0) ? 0 : (idx + delta + filteredIds.length) % filteredIds.length;
+      state.currentId = filteredIds[next];
+      state.flipped = false;
+      saveLast();
+      render();
+    }
 
-})();
-</script>
+    function flip(){
+      if (!state.currentId) return;
+      state.flipped = !state.flipped;
+      render();
+    }
+
+    function mark(status){
+      if (!state.currentId) return;
+      state.progress[state.currentId] = status;
+      saveProgress();
+      render();
+    }
+
+    async function loadCardsTSV({bustCache} = {bustCache:false}){
+      try{
+        setStatus("読み込み中…", null);
+        const url = bustCache ? `cards.tsv?t=${Date.now()}` : `cards.tsv`;
+        const res = await fetch(url, { cache: bustCache ? "no-store" : "default" });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+        const raw = await res.text();
+        const items = parseTSV(raw);
+
+        if (!items.length){
+          state.rawTSV = raw;
+          state.datasetId = computeDatasetId(raw || "empty");
+          state.items = [];
+          state.progress = {};
+          filteredIds = [];
+          setStatus("cards.tsv が空です", false);
+          render();
+          return;
+        }
+
+        state.rawTSV = raw;
+        state.datasetId = computeDatasetId(raw);
+        state.items = items;
+
+        loadProgress();
+
+        const last = LS.getItem(keyLast(state.datasetId));
+        state.currentId = (last && items.some(x => x.id === last)) ? last : items[0].id;
+        state.flipped = false;
+
+        buildTagOptions();
+        applyFilters();
+        setStatus(`読み込み完了（${items.length}件）`, true);
+      }catch(err){
+        console.error(err);
+        state.items = [];
+        state.datasetId = null;
+        state.progress = {};
+        filteredIds = [];
+        setStatus("読み込み失敗（cards.tsv 未配置 / 参照不可）", false);
+        el.term.textContent = "cards.tsv を読み込めませんでした";
+        el.def.style.display = "none";
+        el.datasetInfo.textContent = "エラー";
+        el.hint.textContent = "cards.tsv が index.html と同じ階層にあるか確認してください";
+        updateStats();
+      }
+    }
+
+    // ===== Events =====
+    el.card.addEventListener("click", () => flip());
+    el.card.addEventListener("keydown", (e) => {
+      if (e.key === " " || e.code === "Space"){ e.preventDefault(); flip(); }
+    });
+
+    el.btnPrev.addEventListener("click", () => nextCard(-1));
+    el.btnNext.addEventListener("click", () => nextCard(+1));
+    el.btnFlip.addEventListener("click", () => flip());
+
+    el.btnMarkLearned.addEventListener("click", () => mark("learned"));
+    el.btnMarkUnlearned.addEventListener("click", () => mark("unlearned"));
+
+    el.searchInput.addEventListener("input", () => { filters.q = el.searchInput.value; applyFilters(); });
+    el.tagFilter.addEventListener("change", () => { filters.tag = el.tagFilter.value; applyFilters(); });
+    el.targetFilter.addEventListener("change", () => { filters.target = el.targetFilter.value; applyFilters(); });
+
+    el.btnResetProgress.addEventListener("click", () => {
+      if (!state.datasetId) return;
+      if (!confirm("このデータセットの学習状況をリセットします。よろしいですか？")) return;
+      state.progress = {};
+      LS.removeItem(keyProgress(state.datasetId));
+      render();
+    });
+
+    el.btnReload.addEventListener("click", async () => { await loadCardsTSV({ bustCache: true }); });
+
+    document.addEventListener("keydown", (e) => {
+      const t = e.target;
+      const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+      if (typing) return;
+
+      if (e.key === "ArrowLeft"){ e.preventDefault(); nextCard(-1); }
+      if (e.key === "ArrowRight"){ e.preventDefault(); nextCard(+1); }
+      if (e.key === " " || e.code === "Space"){ e.preventDefault(); flip(); }
+      if (e.key === "k" || e.key === "K"){ mark("learned"); }
+      if (e.key === "u" || e.key === "U"){ mark("unlearned"); }
+    });
+
+    window.addEventListener("DOMContentLoaded", async () => { await loadCardsTSV({ bustCache: false }); });
+  </script>
 </body>
 </html>
