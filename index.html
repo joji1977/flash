@@ -603,14 +603,14 @@
       el.datasetInfo.textContent = `総数 ${totalAll} 件 / 表示 ${totalFiltered} 件`;
 
       if (state.flipped){
-        el.term.textContent = it.def || "(定義なし)";
-        el.def.style.display = "none";
+        el.term.textContent = it.term || "(用語なし)";
+        el.def.textContent = it.def || "(定義なし)";
+        el.def.style.display = "block";
         el.hint.textContent = "クリック/タップで表に戻る（Space）";
       }else{
         el.term.textContent = it.term || "(用語なし)";
-        el.def.textContent = it.def || "";
-        el.def.style.display = it.def ? "block" : "none";
-        el.hint.innerHTML = 'カードをタップ／クリックで表裏を切り替え（<span class="kbd">Space</span>）';
+        el.def.style.display = "none";
+        el.hint.innerHTML = 'カードをタップ／クリックで定義を表示（<span class="kbd">Space</span>）';
       }
 
       updateStats();
